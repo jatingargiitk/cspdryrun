@@ -69,3 +69,27 @@ def test_only_unused_css_urls_are_extra(site):
             src = [f for f in res.findings if f.file == rel and _key(f)[1] == blocked]
             assert src and all(f.item.via for f in src), f"{rel}: cspdryrun blocked {directive} {blocked} but the browser did not"
     assert any(seen.values())
+
+
+def test_suggested_fixes_are_accepted_by_the_browser():
+    """Apply the README's proposed policy (built from cspdryrun's fixes): the
+    browser must block exactly the two attributes cspdryrun still reports."""
+    import re
+    script = (ROOT / "examples" / "readme_examples.sh").read_text()
+    proposed = re.search(r'^PROPOSED="(.*)"$', script, re.M).group(1)
+    root = ROOT / "examples" / "site"
+    rules = parse_headers_file(f"/*\n  Content-Security-Policy: {proposed}\n", "proposed")
+    res = run(root, rules, [], ORIGIN)
+    pages = [(rel, ORIGIN + served_paths(rel)[0]) for rel, _ in res.pages]
+    try:
+        seen = browser_violations(root, rules, ORIGIN, pages)
+    except Exception as e:
+        if "Executable doesn't exist" in str(e):
+            pytest.skip("playwright chromium not installed")
+        raise
+    assert seen == {
+        "about/index.html": [],
+        "blog/post.html": [],
+        "index.html": [("script-src-attr", "inline", "enforce"), ("style-src-attr", "inline", "enforce")],
+    }
+    assert sorted(_key(f) for f in res.findings) == seen["index.html"]

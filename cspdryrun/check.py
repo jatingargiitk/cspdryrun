@@ -54,6 +54,9 @@ def _fix(item, decided_by, source_list, origin):
         token = P.csp_hash(item.text)
         unsafe = "" if P._has(source_list, "'unsafe-hashes'") else "'unsafe-hashes' "
         add = unsafe + token
+        move = "a stylesheet" if eff.startswith("style") else "a script file"
+        if item.kind == "attribute" and decided_by != "default-src":
+            return f"move it to {move}, or add {add} to {decided_by}"
     elif item.kind == "script-url" and P._has(source_list, "'strict-dynamic'"):
         return "give it a nonce, or an integrity hash listed in the policy ('strict-dynamic' ignores URLs)"
     else:
@@ -104,7 +107,7 @@ class Result:
         self.unprotected = []
 
 
-def run(root, rules, extra_policies, origin, enforce_report_only=False):
+def run(root, rules, extra_policies, origin, enforce_report_only=False, use_meta=True):
     root = Path(root)
     res = Result()
     html_files = sorted(
@@ -143,7 +146,7 @@ def run(root, rules, extra_policies, origin, enforce_report_only=False):
             for part in P.split_policies(value):
                 pol = P.Policy(part, ("Report-Only header " if ro else "header ") + src, report_only=ro and not enforce_report_only)
                 policies.append(pol)
-        for line, equiv, content in metas:
+        for line, equiv, content in (metas if use_meta else []):
             if equiv == CSP_RO:
                 res.warnings.append(f"{rel}:{line}: Content-Security-Policy-Report-Only in <meta> is ignored by browsers")
                 continue

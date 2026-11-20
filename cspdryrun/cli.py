@@ -12,7 +12,7 @@ from .headers import parse_headers_file, parse_vercel
 
 EPILOG = """examples:
   cspdryrun dist --origin https://example.com
-  cspdryrun dist --policy "default-src 'self'; img-src 'self' data:"
+  cspdryrun dist --only --policy "default-src 'self'; img-src 'self' data:"
   cspdryrun dist --headers dist/_headers --enforce-report-only
   cspdryrun build --vercel vercel.json --format json
 
@@ -32,6 +32,8 @@ def _parser():
     ap.add_argument("--headers", metavar="FILE",
                     help="Netlify / Cloudflare Pages _headers file (default: DIR/_headers if it exists)")
     ap.add_argument("--vercel", metavar="FILE", help="vercel.json with a headers array")
+    ap.add_argument("--only", action="store_true",
+                    help="check only the --policy policies; ignore _headers, vercel.json and <meta> tags")
     ap.add_argument("--origin", default="https://site.invalid",
                     help="the origin the site is served from, used for 'self' and relative URLs (default: %(default)s)")
     ap.add_argument("--enforce-report-only", action="store_true",
@@ -86,7 +88,11 @@ def main(argv=None):
     if "://" not in origin:
         ap.error("--origin must look like https://example.com")
     rules, warnings = [], []
-    headers = args.headers or (str(root / "_headers") if (root / "_headers").is_file() else None)
+    if args.only and not args.policy:
+        ap.error("--only needs at least one --policy")
+    if args.only and (args.headers or args.vercel):
+        ap.error("--only ignores headers files, so don't pass --headers or --vercel with it")
+    headers = args.headers or (str(root / "_headers") if (root / "_headers").is_file() and not args.only else None)
     try:
         if headers:
             rules += parse_headers_file(Path(headers).read_text(encoding="utf-8"), Path(headers).name)
@@ -97,7 +103,7 @@ def main(argv=None):
     except (OSError, ValueError) as e:
         print(f"cspdryrun: error: {e}", file=sys.stderr)
         return 2
-    res = run(root, rules, args.policy, origin, args.enforce_report_only)
+    res = run(root, rules, args.policy, origin, args.enforce_report_only, use_meta=not args.only)
     res.warnings = warnings + res.warnings
     if not any(sources for _, sources in res.pages):
         res.warnings.append("no policy found: pass --policy, --headers, --vercel, or add a CSP <meta> tag")

@@ -1,0 +1,42 @@
+about/index.html
+  policy 1: header _headers:2 (/*)
+  BLOCK  line 6: url(/assets/acme-sans.woff2) (in /assets/app.css)
+         font-src; fix: add 'self' to font-src
+  BLOCK  line 6: url(https://images.example-cdn.net/hero.jpg) (in /assets/app.css)
+         img-src; fix: add https://images.example-cdn.net to img-src
+  BLOCK  line 10: <iframe src="https://www.youtube-nocookie.com/embed/abc123">
+         frame-src -> default-src; fix: set frame-src 'self' https://www.youtube-nocookie.com  (it inherits default-src now)
+
+blog/post.html
+  policy 1: header _headers:2 (/*)
+  policy 2: Report-Only header _headers:6 (/blog/*)
+  BLOCK  line 6: url(/assets/acme-sans.woff2) (in /assets/app.css)
+         font-src [policy 1]; fix: add 'self' to font-src
+  BLOCK  line 6: url(https://images.example-cdn.net/hero.jpg) (in /assets/app.css)
+         img-src [policy 1]; fix: add https://images.example-cdn.net to img-src
+  BLOCK  line 11: <img src="https://images.example-cdn.net/cover.webp">
+         img-src [policy 1]; fix: add https://images.example-cdn.net to img-src
+  REPORT line 6: url(https://images.example-cdn.net/hero.jpg) (in /assets/app.css)
+         img-src -> default-src [policy 2]; fix: set img-src 'self' https://images.example-cdn.net  (it inherits default-src now)
+  REPORT line 8: <script src="https://www.googletagmanager.com/gtag/js?id=G-XXXX">
+         script-src-elem -> script-src [policy 2]; fix: give it a nonce, or an integrity hash listed in the policy ('strict-dynamic' ignores URLs)
+  REPORT line 11: <img src="https://images.example-cdn.net/cover.webp">
+         img-src -> default-src [policy 2]; fix: set img-src 'self' https://images.example-cdn.net  (it inherits default-src now)
+
+index.html
+  policy 1: header _headers:2 (/*)
+  BLOCK  line 6: inline <script> 'document.documentElement.data…'
+         script-src-elem -> script-src; fix: add 'sha256-hUizg0THL3POThjSDVwpjWQRCwbqMmpUTVQH8Hce5tI=' to script-src
+  BLOCK  line 8: url(/assets/acme-sans.woff2) (in /assets/app.css)
+         font-src; fix: add 'self' to font-src
+  BLOCK  line 8: url(https://images.example-cdn.net/hero.jpg) (in /assets/app.css)
+         img-src; fix: add https://images.example-cdn.net to img-src
+  BLOCK  line 9: <link href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg…">
+         img-src; fix: add data: to img-src
+  BLOCK  line 15: <button onclick="window.print()">
+         script-src-attr -> script-src; fix: move it to a script file, or add 'unsafe-hashes' 'sha256-MguIPR6qNR8D3B+eAlK+bIRTZe8t3wkOY4B/56Me9FU=' to script-src
+  BLOCK  line 16: <p style="color: rebeccapurple">
+         style-src-attr -> style-src; fix: move it to a stylesheet, or add 'unsafe-hashes' 'sha256-AbQMTXlkez1/aRYDtOSgHhtZ29+NRfwaHapcKx/QcAI=' to style-src
+
+3 page(s) checked: 12 blocked on 3 page(s), 3 more only reported (Report-Only)
+exit 1

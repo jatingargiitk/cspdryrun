@@ -1,0 +1,17 @@
+about/index.html
+  policy 1: --policy
+  ok: nothing blocked
+
+blog/post.html
+  policy 1: --policy
+  ok: nothing blocked
+
+index.html
+  policy 1: --policy
+  BLOCK  line 15: <button onclick="window.print()">
+         script-src-attr -> script-src; fix: move it to a script file, or add 'unsafe-hashes' 'sha256-MguIPR6qNR8D3B+eAlK+bIRTZe8t3wkOY4B/56Me9FU=' to script-src
+  BLOCK  line 16: <p style="color: rebeccapurple">
+         style-src-attr -> style-src; fix: move it to a stylesheet, or add 'unsafe-hashes' 'sha256-AbQMTXlkez1/aRYDtOSgHhtZ29+NRfwaHapcKx/QcAI=' to style-src
+
+3 page(s) checked: 2 blocked on 1 page(s)
+exit 1
