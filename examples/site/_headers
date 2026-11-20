@@ -1,0 +1,7 @@
+# Netlify / Cloudflare Pages headers for this build
+/*
+  Content-Security-Policy: default-src 'self'; script-src 'self' https://www.googletagmanager.com; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self'
+  X-Content-Type-Options: nosniff
+
+/blog/*
+  Content-Security-Policy-Report-Only: default-src 'self'; script-src 'self' 'strict-dynamic' 'nonce-r4nd0m'; object-src 'none'; base-uri 'none'

@@ -1,0 +1,10 @@
+# a/: hashes, nonces and 'unsafe-inline' interplay
+/a/*
+  Content-Security-Policy: script-src 'unsafe-inline' 'nonce-abc' 'sha256-CihokcEcBW4atb/CW/XWsvWwbTjqwQlE9nj9ii5ww5M='; style-src 'unsafe-inline'; style-src-attr 'unsafe-hashes' 'sha256-NerDAUWfwD31YdZHveMrq0GLjsNFMwxLpZl0dPUeCcw='; img-src *.cdn.test https://static.test/img/ https://cdn.test:8080; object-src 'none'; form-action 'self'; base-uri 'self'
+
+# b/: strict-dynamic, and two policies at once
+/b/*
+  Content-Security-Policy: script-src 'nonce-xyz' 'strict-dynamic' https://ignored.test 'unsafe-inline', img-src 'self' data:
+  Content-Security-Policy-Report-Only: default-src 'none'; img-src https:; script-src 'self'
+
+# c/: no header, the page sets a <meta> policy

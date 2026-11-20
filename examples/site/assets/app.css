@@ -1,0 +1,6 @@
+@font-face {
+  font-family: "Acme Sans";
+  src: url("/assets/acme-sans.woff2") format("woff2");
+}
+body { font-family: "Acme Sans", Inter, sans-serif; }
+.hero { background: url("https://images.example-cdn.net/hero.jpg") center / cover; }
